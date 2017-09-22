@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="antprettybuild.xsl"?>
+<project basedir="." name="Build Endnotes 2017 Conference Materials" default="all">
+  <!--The purpose of this build is to get the most up-to-date conference
+      materials and create PDF materials from the documents-->
+    
+    
+    <path id="jars">
+        <pathelement location="utilities/saxon9he.jar"/>
+    </path>
+    
+    <property name="echo.separator" value="****************************************"/>
+    <property name="fop.home" value="utilities/fop-2.0"/>
+    
+    <taskdef name="fop"
+        classname="org.apache.fop.tools.anttasks.Fop">
+        <classpath>
+            <fileset dir="${fop.home}/lib">
+                <include name="*.jar"/>
+            </fileset>
+            <fileset dir="${fop.home}/build">
+                <include name="fop.jar"/>
+                <include name="fop-hyph.jar" />
+            </fileset>
+        </classpath>
+    </taskdef>
+    
+   
+    
+    <target name="init">
+        <echo message="${echo.separator}"/>
+        <echo message="Initializing..."/>
+        <antcall target="clean"/>
+       <!-- <antcall target="clean"/>-->
+        <mkdir dir="temp"/>
+        <mkdir dir="../products/PDF/for_panel_chairs"/>
+        <mkdir dir="../products/wordpress"/>
+        <echo message="${echo.separator}"/>
+      
+        <echo message="Getting and unzipping necessary documents.."/>
+        
+        
+        <!--This get introduction text-->
+        <get src="https://docs.google.com/document/d/1eHa7AypVhW8cB6ScmuVGkP19DXIFet9S8vnj_cj6_pk/export?format=zip&amp;id=1eHa7AypVhW8cB6ScmuVGkP19DXIFet9S8vnj_cj6_pk"
+        dest="temp/intro.zip"
+        verbose="on"/>
+        
+        <!--This is getting presenters.-->
+        <get src="https://docs.google.com/spreadsheets/d/1my5-zUMwramhItfPm_gjvF69Kl8CRSYifobDpyWwP4E/export?format=zip&amp;id=1OGWDueHneDr2aJWm04ry78pRFIIc-8nxAqfS29CBLcA" 
+                dest="temp/presenters.zip" 
+                verbose="on"/>
+          <!--This is getting registrants (presenting or not)-->
+            <get src="https://docs.google.com/spreadsheets/d/1tCbIHInq4Yo3VbY_bgjQNJXu216JRdMD-b1Jrs_PwwE/export?format=zip&amp;id=1tCbIHInq4Yo3VbY_bgjQNJXu216JRdMD-b1Jrs_PwwE"
+                dest="temp/registration.zip" 
+                verbose="on"/>
+        
+        <!--This is getting the schedule-->
+        <get src="https://docs.google.com/spreadsheets/d/14IF82ZjTerl-Gys1-wiWx0D9u40IIbFn8K9vUGIeJn0/export?format=zip&amp;id=14IF82ZjTerl-Gys1-wiWx0D9u40IIbFn8K9vUGIeJn0"
+            dest="temp/schedule.zip"
+        verbose="on"/>
+        
+        
+      <!--This is getting keynotes-->
+        <get src="https://docs.google.com/spreadsheets/d/1xqKPsgCoqbggHayvBxLFgQDiPvH2A5UMULZcroguOI8/export?format=zip&amp;id=1xqKPsgCoqbggHayvBxLFgQDiPvH2A5UMULZcroguOI8" dest="temp/keynotes.zip" verbose="on"/>
+        
+        <unzip src="temp/intro.zip"
+            dest="temp/intro"/>
+        
+        <unzip src="temp/presenters.zip" 
+            dest="temp/presenters"/>
+        
+        <unzip src="temp/registration.zip" 
+            dest="temp/registration"/>
+       
+        <unzip src="temp/schedule.zip"
+            dest="temp/schedule"/>
+        
+        <unzip src="temp/keynotes.zip"
+            dest="temp/keynotes"/>
+        
+        <echo message="Using Tidy to make Google Docs HTML well-formed..."/>
+       
+       <exec executable="tidy">
+           <arg line="--quote-nbsp no -asxhtml -o temp/intro.html temp/intro/Introduction.html"/>
+       </exec>
+        <exec executable="tidy">
+            <arg line="-asxhtml  -o temp/presenters.html 'temp/presenters/Sheet1.html'"/>
+        </exec>
+        <exec executable="tidy">
+            <arg line="-asxhtml -o temp/registration.html 'temp/registration/Form Responses 1.html'"/>
+        </exec>
+        
+        <exec executable="tidy">
+            <arg line="-asxhtml -o temp/schedule.html 'temp/schedule/Sheet1.html'"/>
+        </exec>
+        
+        <exec executable="tidy">
+            <arg line="-asxhtml -o temp/keynotes.html 'temp/keynotes/Sheet1.html'"/>
+        </exec>
+   
+
+    </target>
+
+    
+    <target name="makeProgram">
+        
+        <echo message="${echo.separator}"/>
+        <echo message="Creating program FO files..."/>
+        
+       
+        
+        <java classname="net.sf.saxon.Transform" classpath="utilities/saxon9he.jar">
+            <arg value="-s:create_program.xsl"/>
+            <arg value="-xsl:create_program.xsl"/>
+            <arg value="-o:temp/program.fo"/>
+            <arg value="--suppressXsltNamespaceCheck:on"/>
+        </java>
+        
+        <echo message="${echo.separator}"/>
+        <echo message="Rendering PDFs...."/>
+        
+        <echo message="${echo.separator}"/>
+        <echo message="Rendering introduction.."/>
+        <fop format="application/pdf"
+            fofile="temp/intro.fo"
+            outfile="../products/PDF/intro.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"
+        />
+        
+        <echo message="${echo.separator}"/>
+        <echo message="Rendering schedule..."/>
+        <fop format="application/pdf"
+            fofile="temp/schedule.fo"
+            outfile="../products/PDF/schedule.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"
+        />
+        
+        <echo message="${echo.separator}"/>
+        <echo message="Rendering keynotes..."/>
+        <fop format="application/pdf"
+            fofile="temp/keynotes.fo"
+            outfile="../products/PDF/keynotes.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"
+        />
+        
+        <echo message="${echo.separator}"/>
+        <echo message="Rendering bios..."/>
+        <fop format="application/pdf"
+            fofile="temp/bios.fo"
+            outfile="../products/PDF/bios.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"
+        />
+        
+        <echo message="${echo.separator}"/>
+        <echo message="Rendering program..."/>
+        <fop format="application/pdf"
+            fofile="temp/program.fo"
+            outfile="../products/PDF/program.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"
+        />
+        
+       
+        
+        <echo message="${echo.separator}"/>
+        <echo message="Done! Check Endnotes 2017/products for PDFs and HTML files"/>
+    </target>
+    
+    <target name="makeProgramHtml">
+        <echo message="${echo.separator}"/>
+        <echo message="Creating XHTML fragments for importing into Wordpress..."/>
+        <java classname="net.sf.saxon.Transform" classpath="utilities/saxon9he.jar">
+            <arg value="-s:create_html_for_WP.xsl"/>
+            <arg value="-xsl:create_html_for_WP.xsl"/>
+            <arg value="--suppressXsltNamespaceCheck:on"/>
+        </java>
+    </target>
+    
+    <target name="makePanelDocuments">
+        <echo message="${echo.separator}"/>
+        <echo message="Creating PDF documents for panel chairs..."/>
+        <java classname="net.sf.saxon.Transform" classpath="utilities/saxon9he.jar">
+            <arg value="-s:create_panel_documents.xsl"/>
+            <arg value="-xsl:create_panel_documents.xsl"/>
+            <arg value="--suppressXsltNamespaceCheck:on"/>
+        </java>
+        <fop format="application/pdf" fofile="temp/Moss_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/Moss_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+
+        <fop format="application/pdf" fofile="temp/Frank_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/Frank_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+        <fop format="application/pdf" fofile="temp/Tomc_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/Tomc_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+        <fop format="application/pdf" fofile="temp/TBA_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/TBA_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+        <fop format="application/pdf" fofile="temp/Hodgson_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/Hodgson_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+        <fop format="application/pdf" fofile="temp/Paltin_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/Paltin_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+        <fop format="application/pdf" fofile="temp/Bricker_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/Bricker_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+        <fop format="application/pdf" fofile="temp/Yao_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/Yao_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+        <fop format="application/pdf" fofile="temp/McCormack_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/McCormack_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+        
+        <fop format="application/pdf" fofile="temp/Giffen_endnotes2017.fo"
+            outfile="../products/PDF/for_panel_chairs/Giffen_endnotes2017.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"/>
+    </target>
+    
+    <target name="makeNametags">
+        <echo message="${echo.separator}"/>
+        <echo message="Creating nametags..."/>
+        <java classname="net.sf.saxon.Transform" classpath="utilities/saxon9he.jar">
+            <arg value="-s:temp/registration.html"/>
+            <arg value="-xsl:make_nametags.xsl"/> 
+            <arg value="-o:temp/nametags.fo"/>
+            <arg value="--suppressXsltNamespaceCheck:on"/>
+        </java>
+        <echo message="${echo.separator}"/>
+        <echo message="Rendering nametags..."/>
+        <fop format="application/pdf"
+            fofile="temp/nametags.fo"
+            outfile="../products/PDF/nametags.pdf"
+            userconfig="utilities/fop-2.0/conf/fop.xconf"
+        />
+    </target>
+    
+    
+    <target name="clean">
+        <delete dir="temp"/>
+        <!--This will delete any unnecessary things
+            made the process-->
+    </target>
+    
+    <target name="all">
+        <antcall target="init"/>
+        <antcall target="makeProgram"/>
+        <antcall target="makeProgramHtml"/>
+        <antcall target="makePanelDocuments"/>
+        <antcall target="makeNametags"/>
+        <antcall target="clean"/>
+    </target>
+    
+    
+</project>
