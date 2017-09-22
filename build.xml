@@ -41,27 +41,27 @@
         
         
         <!--This get introduction text-->
-        <get src="https://docs.google.com/document/d/1eHa7AypVhW8cB6ScmuVGkP19DXIFet9S8vnj_cj6_pk/export?format=zip&amp;id=1eHa7AypVhW8cB6ScmuVGkP19DXIFet9S8vnj_cj6_pk"
+        <get src=""
         dest="temp/intro.zip"
         verbose="on"/>
         
         <!--This is getting presenters.-->
-        <get src="https://docs.google.com/spreadsheets/d/1my5-zUMwramhItfPm_gjvF69Kl8CRSYifobDpyWwP4E/export?format=zip&amp;id=1OGWDueHneDr2aJWm04ry78pRFIIc-8nxAqfS29CBLcA" 
+        <get src="" 
                 dest="temp/presenters.zip" 
                 verbose="on"/>
           <!--This is getting registrants (presenting or not)-->
-            <get src="https://docs.google.com/spreadsheets/d/1tCbIHInq4Yo3VbY_bgjQNJXu216JRdMD-b1Jrs_PwwE/export?format=zip&amp;id=1tCbIHInq4Yo3VbY_bgjQNJXu216JRdMD-b1Jrs_PwwE"
+            <get src=""
                 dest="temp/registration.zip" 
                 verbose="on"/>
         
         <!--This is getting the schedule-->
-        <get src="https://docs.google.com/spreadsheets/d/14IF82ZjTerl-Gys1-wiWx0D9u40IIbFn8K9vUGIeJn0/export?format=zip&amp;id=14IF82ZjTerl-Gys1-wiWx0D9u40IIbFn8K9vUGIeJn0"
+        <get src=""
             dest="temp/schedule.zip"
         verbose="on"/>
         
         
       <!--This is getting keynotes-->
-        <get src="https://docs.google.com/spreadsheets/d/1xqKPsgCoqbggHayvBxLFgQDiPvH2A5UMULZcroguOI8/export?format=zip&amp;id=1xqKPsgCoqbggHayvBxLFgQDiPvH2A5UMULZcroguOI8" dest="temp/keynotes.zip" verbose="on"/>
+        <get src="" dest="temp/keynotes.zip" verbose="on"/>
         
         <unzip src="temp/intro.zip"
             dest="temp/intro"/>
