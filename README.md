@@ -4,7 +4,7 @@ This repository contains the code for Endnotes 2017 conference scheduling, websi
 
 To run this code, you should have ANT. You can run it at the command line like so:
 
-``
+```
 cd your/directory/for/this/repo
 ant -lib utilities
-``
+```
